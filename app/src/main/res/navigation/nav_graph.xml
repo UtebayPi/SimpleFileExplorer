@@ -3,10 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/textFilesListFragment2">
+    app:startDestination="@id/textFilesListFragment">
     <fragment
-        android:id="@+id/textFilesListFragment2"
+        android:id="@+id/textFilesListFragment"
         android:name="com.utebaykazalm.simplefileexplorer.ui.TextFilesListFragment"
         android:label="fragment_text_files_list"
-        tools:layout="@layout/fragment_text_files_list" />
+        tools:layout="@layout/fragment_text_files_list" >
+        <action
+            android:id="@+id/action_textFilesListFragment_to_createTextFileFragment"
+            app:destination="@id/createTextFileFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/createTextFileFragment"
+        android:name="com.utebaykazalm.simplefileexplorer.ui.CreateTextFileFragment"
+        android:label="fragment_create_text_file"
+        tools:layout="@layout/fragment_create_text_file" />
 </navigation>

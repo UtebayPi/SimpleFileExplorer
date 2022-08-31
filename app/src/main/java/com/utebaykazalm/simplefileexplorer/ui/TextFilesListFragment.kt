@@ -9,13 +9,16 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFilesListBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 const val TFLF = "TextFilesListFragment"
+
 class TextFilesListFragment : Fragment() {
 
     private var _binding: FragmentTextFilesListBinding? = null
@@ -35,10 +38,9 @@ class TextFilesListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupFilesRecyclerView()
-        // createTextFileInInternalStorage("Baaby.txt","Giorno Giovanna")
         loadTextFilesIntoRecyclerView()
-        binding.btnCreateTextFile.setOnClickListener {
-
+        binding.fabCreateTextFile.setOnClickListener {
+            findNavController().navigate(TextFilesListFragmentDirections.actionTextFilesListFragmentToCreateTextFileFragment())
         }
     }
 
@@ -85,18 +87,9 @@ class TextFilesListFragment : Fragment() {
         }
     }
 
-    private fun createTextFileInInternalStorage(fileName: String, content: String): Boolean {
-        return try {
-            val fixedName = if (fileName.endsWith(".txt")) fileName else "$fileName.txt"
-            requireContext().openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
-                it.write(content.toByteArray())
-            }
-            loadTextFilesIntoRecyclerView()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
 }

@@ -2,4 +2,9 @@
     <string name="app_name">SimpleFileExplorer</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_file_name_hint">Напишите название файла…</string>
+    <string name="text_file_name_text">Название файла</string>
+    <string name="text_file_content">Содержание файла</string>
+    <string name="text_file_content_hint">Напишите содержание файла…</string>
+    <string name="create_text_file">Создать новый текстовый файл</string>
 </resources>
