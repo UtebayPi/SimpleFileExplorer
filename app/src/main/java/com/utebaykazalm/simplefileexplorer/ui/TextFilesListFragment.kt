@@ -66,7 +66,7 @@ class TextFilesListFragment : Fragment() {
 
     private suspend fun getTextFilesFromInternalStorage(): List<TextFile> = withContext(Dispatchers.IO) {
         try {
-            val files = requireContext().filesDir.listFiles()
+            val files = context?.filesDir?.listFiles()
             files?.filter { it.canRead() and it.isFile and it.name.endsWith(".txt") }?.map {
                 TextFile(it.name)
             } ?: listOf()
@@ -80,7 +80,7 @@ class TextFilesListFragment : Fragment() {
 
     private fun deleteFileFromInternalStorage(filename: String): Boolean {
         return try {
-            requireContext().deleteFile(filename)
+            context?.deleteFile(filename) ?: false
         } catch (e: Exception) {
             e.printStackTrace()
             false

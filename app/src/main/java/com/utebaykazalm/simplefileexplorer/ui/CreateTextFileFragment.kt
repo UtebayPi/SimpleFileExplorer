@@ -41,8 +41,8 @@ class CreateTextFileFragment : Fragment() {
             val trimName = fileName.trim()
             val trimContent = content.trim()
             val fixedName = if (trimName.endsWith(".txt")) trimName else "$trimName.txt"
-            requireContext().openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
-                it.write(trimContent.toByteArray())
+            context?.openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
+                it?.write(trimContent.toByteArray())
             }
             true
         } catch (e: Exception) {
