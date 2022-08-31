@@ -1,4 +1,4 @@
-package com.utebaykazalm.simplefileexplorer
+package com.utebaykazalm.simplefileexplorer.data
 
 data class TextFile(
     val fileName: String,

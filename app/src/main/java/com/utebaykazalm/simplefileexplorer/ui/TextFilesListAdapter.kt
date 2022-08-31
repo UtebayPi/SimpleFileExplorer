@@ -1,10 +1,11 @@
-package com.utebaykazalm.simplefileexplorer
+package com.utebaykazalm.simplefileexplorer.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.ItemTextFileBinding
 
 class TextFilesListAdapter(private val onClick: (TextFile) -> Unit, private val onLongClick: (TextFile) -> Boolean) :

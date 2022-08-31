@@ -9,9 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.utebaykazalm.simplefileexplorer.MAIN_ACTIVITY
-import com.utebaykazalm.simplefileexplorer.TextFile
-import com.utebaykazalm.simplefileexplorer.TextFilesListAdapter
+import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFilesListBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
