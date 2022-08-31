@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/textFilesListFragment2">
+    <fragment
+        android:id="@+id/textFilesListFragment2"
+        android:name="com.utebaykazalm.simplefileexplorer.ui.TextFilesListFragment"
+        android:label="fragment_text_files_list"
+        tools:layout="@layout/fragment_text_files_list" />
+</navigation>
