@@ -46,6 +46,8 @@ class TextFilesListFragment : Fragment() {
     private fun setupFilesRecyclerView() {
         filesListAdapter = TextFilesListAdapter({
             Log.d(TFLF, "${it.fileName} was clicked")
+            //Здесь будет показан контент.
+            findNavController().navigate(TextFilesListFragmentDirections.actionTextFilesListFragmentToTextFileFragment(it.fileName))
         }) {
             Log.d(TFLF, "${it.fileName} was long clicked")
             deleteFileFromInternalStorage(it.fileName)

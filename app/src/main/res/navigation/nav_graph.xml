@@ -12,10 +12,25 @@
         <action
             android:id="@+id/action_textFilesListFragment_to_createTextFileFragment"
             app:destination="@id/createTextFileFragment" />
+        <action
+            android:id="@+id/action_textFilesListFragment_to_textFileFragment"
+            app:destination="@id/textFileFragment" >
+            <argument
+                android:name="filename"
+                android:defaultValue='""' />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/createTextFileFragment"
         android:name="com.utebaykazalm.simplefileexplorer.ui.CreateTextFileFragment"
         android:label="fragment_create_text_file"
         tools:layout="@layout/fragment_create_text_file" />
+    <fragment
+        android:id="@+id/textFileFragment"
+        android:name="com.utebaykazalm.simplefileexplorer.ui.TextFileFragment"
+        android:label="TextFileFragment" >
+        <argument
+            android:name="filename"
+            app:argType="string" />
+    </fragment>
 </navigation>

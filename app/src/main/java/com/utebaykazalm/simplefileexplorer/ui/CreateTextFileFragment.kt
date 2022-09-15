@@ -1,6 +1,7 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentCreateTextFileBinding
-
+const val CREATE_TFF= "CreateTextFileFragment"
 class CreateTextFileFragment : Fragment() {
 
     private var _binding: FragmentCreateTextFileBinding? = null
@@ -29,7 +30,7 @@ class CreateTextFileFragment : Fragment() {
         }
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
-            val content = binding.tvTextFileContent.text.toString()
+            val content = binding.etTextFileContent.text.toString()
             if (filename.isEmpty() or content.isEmpty()) return@setOnClickListener
             createTextFileInInternalStorage(filename, content)
             findNavController().popBackStack()
