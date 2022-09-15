@@ -5,14 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
-import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFileBinding
-import java.io.File
 
 
 //TODO: надо создать ViewModel
 class TextFileFragment : Fragment() {
+    private val viewModel: TextFileViewModel by activityViewModels()
     private val args: TextFileFragmentArgs by navArgs()
     private var _binding: FragmentTextFileBinding? = null
     private val binding get() = _binding!!
@@ -23,16 +23,9 @@ class TextFileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val filename = args.filename
-        getTextFileByName(filename)
-    }
-
-    //TODO: ЭТо точно не в фрагменте должно быть. Потом переместить в репозиторий.
-    private fun getTextFileByName(filename: String) {
-        context?.openFileInput(filename)?.bufferedReader()?.use {
-            binding.tvTextFileContent.text = it.readText()
-            binding.tvTextFileName.text = filename
-        }
+        val textFile = viewModel.getTextFileByName(args.filename)
+        binding.tvTextFileContent.text = textFile.content
+        binding.tvTextFileName.text = textFile.fileName
     }
 
     override fun onDestroyView() {

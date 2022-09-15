@@ -1,16 +1,21 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentCreateTextFileBinding
-const val CREATE_TFF= "CreateTextFileFragment"
+import dagger.hilt.android.AndroidEntryPoint
+
+const val CREATE_TFF = "CreateTextFileFragment"
+
+@AndroidEntryPoint
 class CreateTextFileFragment : Fragment() {
+
+    private val viewModel: TextFileViewModel by activityViewModels()
 
     private var _binding: FragmentCreateTextFileBinding? = null
     private val binding: FragmentCreateTextFileBinding get() = _binding!!
@@ -32,23 +37,8 @@ class CreateTextFileFragment : Fragment() {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
             if (filename.isEmpty() or content.isEmpty()) return@setOnClickListener
-            createTextFileInInternalStorage(filename, content)
+            viewModel.createTextFileInInternalStorage(filename, content)
             findNavController().popBackStack()
-        }
-    }
-
-    private fun createTextFileInInternalStorage(fileName: String, content: String): Boolean {
-        return try {
-            val trimName = fileName.trim()
-            val trimContent = content.trim()
-            val fixedName = if (trimName.endsWith(".txt")) trimName else "$trimName.txt"
-            context?.openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
-                it?.write(trimContent.toByteArray())
-            }
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
         }
     }
 
