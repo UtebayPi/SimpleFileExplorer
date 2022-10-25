@@ -1,7 +1,6 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,22 +46,6 @@ class CreateTextFileFragment : Fragment() {
                     Snackbar.make(view, result.message.toString(), Snackbar.LENGTH_SHORT).show()
                 }
             }
-//            result.onSuccess {
-            Log.d("CREATE_TFF", it.toString())
-            findNavController().popBackStack()
-//            }
-//            result.onError { message, data ->
-//                Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
-//            }
-//            when (result) {
-//                is ResultOf.Success -> {
-//                    Log.d("CREATE_TFF", result.toString())
-//                    findNavController().popBackStack()
-//                }
-//                is ResultOf.Error->{
-//
-//                }
-//            }
         }
     }
 
