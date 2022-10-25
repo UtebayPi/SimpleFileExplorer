@@ -34,7 +34,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         oldFileName: String = ""
     ): Resource<TextFile> {
         try {
-            //Отдельный один метод для форматирования и верификаций
+            //TODO: Отдельный один метод для форматирования и верификаций
             val trimName = fileName.trim()
             val trimContent = content.trim()
             if (trimName.isBlank() or trimContent.isBlank()) return Resource.Error("Content or name is empty")
@@ -52,7 +52,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
                 deleteFileFromInternalStorage(oldFileName)
             }
             val textFile = TextFile(fixedName, trimContent)
-            //Отдельный метод для сохранения TextFile в памяти
+            //TODO: Отдельный метод для сохранения TextFile в памяти. Чтобы не было возможности заменить так.
+            // Чтобы заменить, нужно сперва удалить. После удаления, снова проверить из списка имен.
             context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
                 it.write(textFile.content.toByteArray())
             }
