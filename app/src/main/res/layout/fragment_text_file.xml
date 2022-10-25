@@ -29,4 +29,16 @@
         app:layout_constraintVertical_bias="0.0"
         tools:text="Content of File" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.886"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_text_file_content"
+        app:layout_constraintVertical_bias="0.949" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

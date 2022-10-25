@@ -33,7 +33,7 @@ class TextFilesListAdapter(private val onClick: (TextFile) -> Unit, private val 
 
     companion object DiffCallback : DiffUtil.ItemCallback<TextFile>() {
         override fun areItemsTheSame(oldItem: TextFile, newItem: TextFile): Boolean {
-            return oldItem.fileName == newItem.fileName
+            return oldItem == newItem
         }
 
         override fun areContentsTheSame(oldItem: TextFile, newItem: TextFile): Boolean {
