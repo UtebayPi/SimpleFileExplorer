@@ -1,13 +1,16 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentCreateTextFileBinding
+import com.utebaykazalm.simplefileexplorer.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 
 const val CREATE_TFF = "CreateTextFileFragment"
@@ -36,9 +39,30 @@ class CreateTextFileFragment : Fragment() {
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
-            if (filename.isEmpty() or content.isEmpty()) return@setOnClickListener
-            viewModel.createTextFileInInternalStorage(filename, content)
+            when (val result = viewModel.createTextFileInInternalStorage(filename, content)) {
+                is Resource.Success -> {
+                    findNavController().popBackStack()
+                }
+                is Resource.Error -> {
+                    Snackbar.make(view, result.message.toString(), Snackbar.LENGTH_SHORT).show()
+                }
+            }
+//            result.onSuccess {
+            Log.d("CREATE_TFF", it.toString())
             findNavController().popBackStack()
+//            }
+//            result.onError { message, data ->
+//                Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
+//            }
+//            when (result) {
+//                is ResultOf.Success -> {
+//                    Log.d("CREATE_TFF", result.toString())
+//                    findNavController().popBackStack()
+//                }
+//                is ResultOf.Error->{
+//
+//                }
+//            }
         }
     }
 

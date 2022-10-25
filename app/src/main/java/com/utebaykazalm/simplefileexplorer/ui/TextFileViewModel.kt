@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.utebaykazalm.simplefileexplorer.data.TextFile
+import com.utebaykazalm.simplefileexplorer.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -26,20 +27,25 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    fun createTextFileInInternalStorage(fileName: String, content: String): Boolean {
-        return try {
+    fun createTextFileInInternalStorage(fileName: String, content: String): Resource<Any?> {
+        try {
             val trimName = fileName.trim()
             val trimContent = content.trim()
-            //val fixedName = if (trimName.endsWith(".txt")) trimName else "$trimName.txt"
-            context.openFileOutput(trimName, AppCompatActivity.MODE_PRIVATE).use {
+            if (trimName.isEmpty() or trimContent.isEmpty()) return Resource.Error("Content or name is empty")
+            val fixedName = when {
+                trimName.endsWith(".txt") -> trimName
+                trimName.contains(".") -> return Resource.Error("Name contains \".\" symbol")
+                else -> "$trimName.txt"
+            }
+            context.openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
                 it.write(trimContent.toByteArray())
             }
             /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
             loadTextFilesFromInternalStorage()
-            true
+            return Resource.Success(true)
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            return Resource.Error("Exception error: ${e.message}")
         }
     }
 
@@ -48,7 +54,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
             _textFiles.value =
                 try {
                     val files = context.filesDir.listFiles()
-                    files?.filter { it.canRead() and it.isFile and it.name.endsWith(".txt") }?.map {
+                    //and it.name.endsWith(".txt")
+                    files?.filter { it.canRead() and it.isFile }?.map {
                         TextFile(it.name)
                     } ?: listOf()
                 } catch (e: Exception) {
