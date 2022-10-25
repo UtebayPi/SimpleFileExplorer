@@ -27,22 +27,38 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    fun createTextFileInInternalStorage(fileName: String, content: String): Resource<Any?> {
+    fun createOrEditTextFileInInternalStorage(
+        fileName: String,
+        content: String,
+        isEdit: Boolean,
+        oldFileName: String = ""
+    ): Resource<TextFile> {
         try {
+            //Отдельный один метод для форматирования и верификаций
             val trimName = fileName.trim()
             val trimContent = content.trim()
-            if (trimName.isEmpty() or trimContent.isEmpty()) return Resource.Error("Content or name is empty")
+            if (trimName.isBlank() or trimContent.isBlank()) return Resource.Error("Content or name is empty")
             val fixedName = when {
                 trimName.endsWith(".txt") -> trimName
                 trimName.contains(".") -> return Resource.Error("Name contains \".\" symbol")
                 else -> "$trimName.txt"
             }
-            context.openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
-                it.write(trimContent.toByteArray())
+            if (!isEdit) {
+                if (context.fileList().map { it.lowercase() }
+                        .contains(fixedName.lowercase())) {
+                    return Resource.Error("That filename is already used")
+                }
+            } else if (oldFileName.isNotBlank()) {
+                deleteFileFromInternalStorage(oldFileName)
+            }
+            val textFile = TextFile(fixedName, trimContent)
+            //Отдельный метод для сохранения TextFile в памяти
+            context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
+                it.write(textFile.content.toByteArray())
             }
             /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
             loadTextFilesFromInternalStorage()
-            return Resource.Success(true)
+            return Resource.Success(textFile)
         } catch (e: Exception) {
             e.printStackTrace()
             return Resource.Error("Exception error: ${e.message}")
@@ -51,26 +67,24 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     private fun loadTextFilesFromInternalStorage() {
         viewModelScope.launch(Dispatchers.IO) {
-            _textFiles.value =
-                try {
-                    val files = context.filesDir.listFiles()
-                    //and it.name.endsWith(".txt")
-                    files?.filter { it.canRead() and it.isFile }?.map {
-                        TextFile(it.name)
-                    } ?: listOf()
-                } catch (e: Exception) {
-                    if (e is CancellationException) throw e
-                    e.printStackTrace()
-                    listOf()
-                }
+            _textFiles.value = try {
+                val files = context.filesDir.listFiles()
+                //and it.name.endsWith(".txt")
+                files?.filter { it.canRead() and it.isFile }?.map {
+                    TextFile(it.name)
+                } ?: listOf()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                e.printStackTrace()
+                listOf()
+            }
         }
 
     }
 
-    fun getTextFileByName(filename: String) =
-        context.openFileInput(filename).bufferedReader().use {
-            TextFile(fileName = filename, content = it.readText())
-        }
+    fun getTextFileByName(filename: String) = context.openFileInput(filename).bufferedReader().use {
+        TextFile(filename, it.readText())
+    }
 
 
     fun deleteFileFromInternalStorage(filename: String): Boolean {

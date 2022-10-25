@@ -39,7 +39,7 @@ class TextFilesListFragment : Fragment() {
 
         setupFilesRecyclerView()
         binding.fabCreateTextFile.setOnClickListener {
-            findNavController().navigate(TextFilesListFragmentDirections.actionTextFilesListFragmentToCreateTextFileFragment())
+            findNavController().navigate(TextFilesListFragmentDirections.actionTextFilesListFragmentToCreateTextFileFragment(""))
         }
         lifecycleScope.launch {
             viewModel.textFiles.collect {

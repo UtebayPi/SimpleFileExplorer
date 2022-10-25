@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFileBinding
 
@@ -25,7 +26,15 @@ class TextFileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val textFile = viewModel.getTextFileByName(args.filename)
         binding.tvTextFileContent.text = textFile.content
-        binding.tvTextFileName.text = textFile.fileName
+        val filename = textFile.fileName
+        binding.tvTextFileName.text = filename
+        binding.btnEdit.setOnClickListener {
+            findNavController().navigate(
+                TextFileFragmentDirections.actionTextFileFragmentToCreateTextFileFragment(
+                    filename
+                )
+            )
+        }
     }
 
     override fun onDestroyView() {

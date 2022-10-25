@@ -11,7 +11,10 @@
         tools:layout="@layout/fragment_text_files_list" >
         <action
             android:id="@+id/action_textFilesListFragment_to_createTextFileFragment"
-            app:destination="@id/createTextFileFragment" />
+            app:destination="@id/createTextFileFragment" >
+            <argument
+                android:name="filename" />
+        </action>
         <action
             android:id="@+id/action_textFilesListFragment_to_textFileFragment"
             app:destination="@id/textFileFragment" >
@@ -22,9 +25,18 @@
     </fragment>
     <fragment
         android:id="@+id/createTextFileFragment"
-        android:name="com.utebaykazalm.simplefileexplorer.ui.CreateTextFileFragment"
+        android:name="com.utebaykazalm.simplefileexplorer.ui.CreateEditTextFileFragment"
         android:label="fragment_create_text_file"
-        tools:layout="@layout/fragment_create_text_file" />
+        tools:layout="@layout/fragment_create_edit_text_file" >
+        <argument
+            android:name="filename"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_createTextFileFragment_to_textFileFragment"
+            app:destination="@id/textFileFragment"
+            app:popUpTo="@id/textFileFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
     <fragment
         android:id="@+id/textFileFragment"
         android:name="com.utebaykazalm.simplefileexplorer.ui.TextFileFragment"
@@ -32,5 +44,8 @@
         <argument
             android:name="filename"
             app:argType="string" />
+        <action
+            android:id="@+id/action_textFileFragment_to_createTextFileFragment"
+            app:destination="@id/createTextFileFragment" />
     </fragment>
 </navigation>
