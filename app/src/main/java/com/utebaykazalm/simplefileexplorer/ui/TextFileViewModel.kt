@@ -30,8 +30,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         return try {
             val trimName = fileName.trim()
             val trimContent = content.trim()
-            val fixedName = if (trimName.endsWith(".txt")) trimName else "$trimName.txt"
-            context.openFileOutput(fixedName, AppCompatActivity.MODE_PRIVATE).use {
+            //val fixedName = if (trimName.endsWith(".txt")) trimName else "$trimName.txt"
+            context.openFileOutput(trimName, AppCompatActivity.MODE_PRIVATE).use {
                 it.write(trimContent.toByteArray())
             }
             /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
