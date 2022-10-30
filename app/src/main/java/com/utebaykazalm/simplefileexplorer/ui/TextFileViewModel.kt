@@ -27,36 +27,28 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
+    //разделить на create и update
     fun createOrEditTextFileInInternalStorage(
-        fileName: String,
-        content: String,
-        isEdit: Boolean,
-        oldFileName: String = ""
+        givenTextFile: TextFile, isEdit: Boolean, oldFileName: String = ""
     ): Resource<TextFile> {
         try {
             //TODO: Отдельный один метод для форматирования и верификаций
-            val trimName = fileName.trim()
-            val trimContent = content.trim()
-            if (trimName.isBlank() or trimContent.isBlank()) return Resource.Error("Content or name is empty")
-            val fixedName = when {
-                trimName.endsWith(".txt") -> trimName
-                trimName.contains(".") -> return Resource.Error("Name contains \".\" symbol")
-                else -> "$trimName.txt"
+            val resultFile = givenTextFile.trimVerifyCreate()
+            if (resultFile is Resource.Error) return resultFile
+            val textFile = resultFile.data!!
+            val availableNames = context.fileList().map { it.lowercase() } as MutableList
+            if (isEdit and oldFileName.isNotBlank()) {
+                availableNames.remove(oldFileName.lowercase())
             }
-            if (!isEdit) {
-                if (context.fileList().map { it.lowercase() }
-                        .contains(fixedName.lowercase())) {
-                    return Resource.Error("That filename is already used")
-                }
-            } else if (oldFileName.isNotBlank()) {
-                deleteFileFromInternalStorage(oldFileName)
+            if (availableNames.contains(textFile.fileName.lowercase())) {
+                return Resource.Error("That filename is already used")
             }
-            val textFile = TextFile(fixedName, trimContent)
             //TODO: Отдельный метод для сохранения TextFile в памяти. Чтобы не было возможности заменить так.
             // Чтобы заменить, нужно сперва удалить. После удаления, снова проверить из списка имен.
             context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
                 it.write(textFile.content.toByteArray())
             }
+            if (isEdit and (textFile.fileName.lowercase() != oldFileName.lowercase())) deleteFileFromInternalStorage(oldFileName)
             /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
             loadTextFilesFromInternalStorage()
             return Resource.Success(textFile)
@@ -72,7 +64,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
                 val files = context.filesDir.listFiles()
                 //and it.name.endsWith(".txt")
                 files?.filter { it.canRead() and it.isFile }?.map {
-                    TextFile(it.name)
+                    TextFile(it.name,"")
                 } ?: listOf()
             } catch (e: Exception) {
                 if (e is CancellationException) throw e

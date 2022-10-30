@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
+import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentCreateEditTextFileBinding
 import com.utebaykazalm.simplefileexplorer.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,9 +52,13 @@ class CreateEditTextFileFragment : Fragment() {
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
-            when (val result = viewModel.createOrEditTextFileInInternalStorage(filename, content, isEdit, oldFileName)) {
+            val textFile = TextFile(filename, content)
+            when (val result = viewModel.createOrEditTextFileInInternalStorage(textFile, isEdit, oldFileName)) {
                 is Resource.Success -> {
-                    findNavController().navigate(CreateEditTextFileFragmentDirections.actionCreateTextFileFragmentToTextFileFragment(result.data!!.fileName))
+                    findNavController().navigate(
+                        CreateEditTextFileFragmentDirections
+                            .actionCreateTextFileFragmentToTextFileFragment(result.data!!.fileName)
+                    )
                 }
                 is Resource.Error -> {
                     Snackbar.make(view, result.message.toString(), Snackbar.LENGTH_SHORT).show()

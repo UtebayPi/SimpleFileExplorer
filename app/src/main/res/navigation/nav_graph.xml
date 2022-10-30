@@ -34,8 +34,8 @@
         <action
             android:id="@+id/action_createTextFileFragment_to_textFileFragment"
             app:destination="@id/textFileFragment"
-            app:popUpTo="@id/textFileFragment"
-            app:popUpToInclusive="true" />
+            app:popUpTo="@id/textFilesListFragment"
+            app:popUpToInclusive="false" />
     </fragment>
     <fragment
         android:id="@+id/textFileFragment"
