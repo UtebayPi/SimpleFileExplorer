@@ -1,6 +1,7 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.content.Context
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,34 +24,26 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     init {
         viewModelScope.launch {
-            loadTextFilesFromInternalStorage()
+            updateFilesInUI()
         }
     }
 
-    //разделить на create и update
-    fun createOrEditTextFileInInternalStorage(
-        givenTextFile: TextFile, isEdit: Boolean, oldFileName: String = ""
+    fun getTextFileByName(filename: String) = context.openFileInput(filename).bufferedReader().use {
+        TextFile(filename, it.readText())
+    }
+
+    private fun getFileNames() = context.fileList().map { it.lowercase() } as MutableList
+
+    fun createFileInIS(
+        initTextFile: TextFile
     ): Resource<TextFile> {
         try {
-            //TODO: Отдельный один метод для форматирования и верификаций
-            val resultFile = givenTextFile.trimVerifyCreate()
+            val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
             val textFile = resultFile.data!!
-            val availableNames = context.fileList().map { it.lowercase() } as MutableList
-            if (isEdit and oldFileName.isNotBlank()) {
-                availableNames.remove(oldFileName.lowercase())
-            }
-            if (availableNames.contains(textFile.fileName.lowercase())) {
+            if (getFileNames().contains(textFile.fileName.lowercase()))
                 return Resource.Error("That filename is already used")
-            }
-            //TODO: Отдельный метод для сохранения TextFile в памяти. Чтобы не было возможности заменить так.
-            // Чтобы заменить, нужно сперва удалить. После удаления, снова проверить из списка имен.
-            context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
-                it.write(textFile.content.toByteArray())
-            }
-            if (isEdit and (textFile.fileName.lowercase() != oldFileName.lowercase())) deleteFileFromInternalStorage(oldFileName)
-            /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
-            loadTextFilesFromInternalStorage()
+            saveFile(textFile)
             return Resource.Success(textFile)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -58,13 +51,60 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    private fun loadTextFilesFromInternalStorage() {
+    fun editFileInIS(
+        initTextFile: TextFile, oldName: String
+    ): Resource<TextFile> {
+        try {
+            val resultFile = initTextFile.trimVerifyCreate()
+            if (resultFile is Resource.Error) return resultFile
+            val textFile = resultFile.data!!
+            val availableNames = getFileNames()
+            availableNames.remove(oldName.lowercase())
+            if (availableNames.contains(textFile.fileName.lowercase()))
+                return Resource.Error("That filename is already used")
+            saveFile(textFile)
+            if ((textFile.fileName.lowercase() != oldName.lowercase()))
+                deleteFileFromIS(oldName)
+            return Resource.Success(textFile)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Resource.Error("Exception error: ${e.message}")
+        }
+    }
+
+    private fun saveFile(textFile: TextFile): Boolean {
+        return try {
+            context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
+                it.write(textFile.content.toByteArray())
+            }
+            updateFilesInUI()
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            false
+        }
+    }
+
+    fun deleteFileFromIS(filename: String): Boolean {
+        val result = try {
+            context.deleteFile(filename)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+        if (result) updateFilesInUI()
+        return result
+    }
+
+    /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
+    private fun updateFilesInUI() {
         viewModelScope.launch(Dispatchers.IO) {
             _textFiles.value = try {
                 val files = context.filesDir.listFiles()
                 //and it.name.endsWith(".txt")
                 files?.filter { it.canRead() and it.isFile }?.map {
-                    TextFile(it.name,"")
+                    TextFile(it.name, "")
                 } ?: listOf()
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -73,22 +113,5 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
             }
         }
 
-    }
-
-    fun getTextFileByName(filename: String) = context.openFileInput(filename).bufferedReader().use {
-        TextFile(filename, it.readText())
-    }
-
-
-    fun deleteFileFromInternalStorage(filename: String): Boolean {
-        val result = try {
-            context.deleteFile(filename)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-        /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
-        if (result) loadTextFilesFromInternalStorage()
-        return result
     }
 }

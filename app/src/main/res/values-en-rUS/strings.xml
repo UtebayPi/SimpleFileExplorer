@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SimpleFileExplorer</string>
+    <string name="save_text">Save</string>
+    <string name="create_text_file">Create new text file</string>
+    <string name="text_file_content_hint">Write file content...</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_file_name_hint">Write file name...</string>
+    <string name="text_file_name_text">File name</string>
+    <string name="text_file_content">File content</string>
+    <string name="cancel_text">Cancel</string>
+</resources>

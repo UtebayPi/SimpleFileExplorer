@@ -47,13 +47,17 @@ class CreateEditTextFileFragment : Fragment() {
             oldFileName = textFile.fileName
             binding.etTextFileName.setText(textFile.fileName)
             binding.etTextFileContent.setText(textFile.content)
-            binding.btnSave.text = "Save Edit"
         }
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
             val textFile = TextFile(filename, content)
-            when (val result = viewModel.createOrEditTextFileInInternalStorage(textFile, isEdit, oldFileName)) {
+            val result = if (isEdit) {
+                viewModel.editFileInIS(textFile, oldFileName)
+            } else {
+                viewModel.createFileInIS(textFile)
+            }
+            when (result) {
                 is Resource.Success -> {
                     findNavController().navigate(
                         CreateEditTextFileFragmentDirections
