@@ -1,6 +1,7 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -14,10 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class TextFileViewModel @Inject constructor(@ApplicationContext val context: Context) : ViewModel() {
+
+    val TFVM = "TextFileViewModel"
 
     private var _textFiles: MutableStateFlow<List<TextFile>> = MutableStateFlow(listOf())
     val textFiles: StateFlow<List<TextFile>> = _textFiles
@@ -30,9 +34,15 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun getTextFileByName(filename: String): Resource<TextFile> {
         return try {
-            val textFile = context.openFileInput(filename).bufferedReader().use {
+            val external = context.getExternalFilesDir(null)
+            val file = File(external, filename)
+            val textFile = file.inputStream().bufferedReader().use {
                 TextFile(filename, it.readText())
             }
+
+//            val textFile = context.openFileInput(filename).bufferedReader().use {
+//                TextFile(filename, it.readText())
+//            }
             Resource.Success(textFile)
         } catch (e: Exception) {
             Toast.makeText(context, "Exception: " + e.message.toString(), Toast.LENGTH_SHORT).show()
@@ -40,7 +50,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    private fun getFileNames() = context.fileList().map { it.lowercase() } as MutableList
+    private fun getFileNames() =
+        context.getExternalFilesDir(null)?.listFiles()?.map { it.name.lowercase() } as MutableList
 
     fun createFileInIS(
         initTextFile: TextFile
@@ -82,9 +93,14 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     private fun saveFile(textFile: TextFile): Boolean {
         return try {
-            context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
+            val external = context.getExternalFilesDir(null)
+            val file = File(external, textFile.fileName)
+            file.outputStream().use {
                 it.write(textFile.content.toByteArray())
             }
+//            context.openFileOutput(textFile.fileName, AppCompatActivity.MODE_PRIVATE).use {
+//                it.write(textFile.content.toByteArray())
+//            }
             updateFilesInUI()
             true
         } catch (e: Exception) {
@@ -96,6 +112,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun deleteFileFromIS(filename: String): Boolean {
         val result = try {
+            //val files = context.getExternalFilesDir(null)?.listFiles()
+            //files?.find { it.name == filename}?.delete()
             context.deleteFile(filename)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -109,7 +127,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     private fun updateFilesInUI() {
         viewModelScope.launch(Dispatchers.IO) {
             _textFiles.value = try {
-                val files = context.filesDir.listFiles()
+                val files = context.getExternalFilesDir(null)?.listFiles()
                 //and it.name.endsWith(".txt")
                 files?.filter { it.canRead() and it.isFile }?.map {
                     TextFile(it.name, "")
