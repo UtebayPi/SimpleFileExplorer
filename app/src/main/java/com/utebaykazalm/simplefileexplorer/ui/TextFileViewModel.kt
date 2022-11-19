@@ -1,6 +1,7 @@
 package com.utebaykazalm.simplefileexplorer.ui
 
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -112,9 +113,10 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun deleteFileFromIS(filename: String): Boolean {
         val result = try {
-            //val files = context.getExternalFilesDir(null)?.listFiles()
-            //files?.find { it.name == filename}?.delete()
-            context.deleteFile(filename)
+            val files = context.getExternalFilesDir(null)?.listFiles()
+            files?.find { it.name == filename }?.delete()
+            true
+            //context.deleteFile(filename)
         } catch (e: Exception) {
             e.printStackTrace()
             false
