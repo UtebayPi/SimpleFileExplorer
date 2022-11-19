@@ -28,8 +28,16 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    fun getTextFileByName(filename: String) = context.openFileInput(filename).bufferedReader().use {
-        TextFile(filename, it.readText())
+    fun getTextFileByName(filename: String): Resource<TextFile> {
+        return try {
+            val textFile = context.openFileInput(filename).bufferedReader().use {
+                TextFile(filename, it.readText())
+            }
+            Resource.Success(textFile)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Exception: " + e.message.toString(), Toast.LENGTH_SHORT).show()
+            Resource.Error("Exception: " + e.message.toString())
+        }
     }
 
     private fun getFileNames() = context.fileList().map { it.lowercase() } as MutableList

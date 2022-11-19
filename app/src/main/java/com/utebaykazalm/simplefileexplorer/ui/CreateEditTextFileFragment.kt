@@ -42,18 +42,19 @@ class CreateEditTextFileFragment : Fragment() {
         }
         val existingFileName = args.filename
         if (existingFileName.isNotBlank()) {
-            isEdit = true
-            val textFile = viewModel.getTextFileByName(existingFileName)
-            oldFileName = textFile.fileName
-            binding.etTextFileName.setText(textFile.fileName)
-            binding.etTextFileContent.setText(textFile.content)
+            val resultFile = viewModel.getTextFileByName(existingFileName)
+            if (resultFile is Resource.Success) {
+                isEdit = true
+                binding.etTextFileName.setText(resultFile.data.fileName)
+                binding.etTextFileContent.setText(resultFile.data.content)
+            }
         }
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
             val textFile = TextFile(filename, content)
             val result = if (isEdit) {
-                viewModel.editFileInIS(textFile, oldFileName)
+                viewModel.editFileInIS(textFile, existingFileName)
             } else {
                 viewModel.createFileInIS(textFile)
             }
@@ -61,11 +62,11 @@ class CreateEditTextFileFragment : Fragment() {
                 is Resource.Success -> {
                     findNavController().navigate(
                         CreateEditTextFileFragmentDirections
-                            .actionCreateTextFileFragmentToTextFileFragment(result.data!!.fileName)
+                            .actionCreateTextFileFragmentToTextFileFragment(result.data.fileName)
                     )
                 }
                 is Resource.Error -> {
-                    Snackbar.make(view, result.message.toString(), Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(view, result.message, Snackbar.LENGTH_SHORT).show()
                 }
             }
         }

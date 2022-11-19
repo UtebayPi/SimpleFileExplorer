@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFileBinding
+import com.utebaykazalm.simplefileexplorer.utils.Resource
 
 
 //TODO: надо создать ViewModel
@@ -24,9 +25,13 @@ class TextFileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val textFile = viewModel.getTextFileByName(args.filename)
-        binding.tvTextFileContent.text = textFile.content
-        val filename = textFile.fileName
+        val resultFile = viewModel.getTextFileByName(args.filename)
+        if (resultFile !is Resource.Success) {
+            findNavController().popBackStack()
+            return
+        }
+        binding.tvTextFileContent.text = resultFile.data.content
+        val filename = resultFile.data.fileName
         binding.tvTextFileName.text = filename
         binding.btnEdit.setOnClickListener {
             findNavController().navigate(
