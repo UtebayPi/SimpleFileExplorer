@@ -35,7 +35,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun getTextFileByName(filename: String): Resource<TextFile> {
         return try {
-            val external = context.getExternalFilesDir(null)
+            val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             val file = File(external, filename)
             val textFile = file.inputStream().bufferedReader().use {
                 TextFile(filename, it.readText())
@@ -52,7 +52,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     }
 
     private fun getFileNames() =
-        context.getExternalFilesDir(null)?.listFiles()?.map { it.name.lowercase() } as MutableList
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
+            ?.map { it.name.lowercase() } as MutableList
 
     fun createFileInIS(
         initTextFile: TextFile
@@ -94,7 +95,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     private fun saveFile(textFile: TextFile): Boolean {
         return try {
-            val external = context.getExternalFilesDir(null)
+            val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             val file = File(external, textFile.fileName)
             file.outputStream().use {
                 it.write(textFile.content.toByteArray())
@@ -113,7 +114,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun deleteFileFromIS(filename: String): Boolean {
         val result = try {
-            val files = context.getExternalFilesDir(null)?.listFiles()
+            val files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
             files?.find { it.name == filename }?.delete()
             true
             //context.deleteFile(filename)
@@ -126,10 +127,11 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     }
 
     /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
-    private fun updateFilesInUI() {
+    fun updateFilesInUI() {
         viewModelScope.launch(Dispatchers.IO) {
             _textFiles.value = try {
-                val files = context.getExternalFilesDir(null)?.listFiles()
+                val files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
+                //val files = context.getExternalFilesDir(null)?.listFiles()
                 //and it.name.endsWith(".txt")
                 files?.filter { it.canRead() and it.isFile }?.map {
                     TextFile(it.name, "")

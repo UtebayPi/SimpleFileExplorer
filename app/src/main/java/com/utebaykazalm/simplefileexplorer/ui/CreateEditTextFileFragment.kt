@@ -72,6 +72,11 @@ class CreateEditTextFileFragment : Fragment() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.updateFilesInUI()
+    }
+
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
