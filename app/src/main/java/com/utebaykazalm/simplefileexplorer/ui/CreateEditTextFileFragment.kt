@@ -26,7 +26,6 @@ class CreateEditTextFileFragment : Fragment() {
     private var _binding: FragmentCreateEditTextFileBinding? = null
     private val binding: FragmentCreateEditTextFileBinding get() = _binding!!
     private var isEdit: Boolean = false
-    private var oldFileName: String = ""
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,11 +69,6 @@ class CreateEditTextFileFragment : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.updateFilesInUI()
     }
 
     override fun onDestroyView() {

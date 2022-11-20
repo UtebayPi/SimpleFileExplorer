@@ -27,11 +27,11 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     private var _textFiles: MutableStateFlow<List<TextFile>> = MutableStateFlow(listOf())
     val textFiles: StateFlow<List<TextFile>> = _textFiles
 
-    init {
-        viewModelScope.launch {
-            updateFilesInUI()
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            updateFilesInUI()
+//        }
+//    }
 
     fun getTextFileByName(filename: String): Resource<TextFile> {
         return try {
