@@ -68,7 +68,7 @@ class TextFilesListFragment : Fragment() {
             )
         }) {
             Log.d(TFLF, "${it.fileName} was long clicked")
-            viewModel.deleteFileFromIS(it.fileName)
+            viewModel.deleteFile(it.fileName)
             Toast.makeText(context, "File was deleted", Toast.LENGTH_SHORT).show()
             true
         }

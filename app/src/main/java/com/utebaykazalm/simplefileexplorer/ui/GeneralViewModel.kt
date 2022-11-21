@@ -22,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GeneralViewModel @Inject constructor(@ApplicationContext val context: Context) : ViewModel() {
 
-    val TFVM = "TextFileViewModel"
+    val GVM = "GeneralViewModel"
 
     private var _textFiles: MutableStateFlow<List<TextFile>> = MutableStateFlow(listOf())
     val textFiles: StateFlow<List<TextFile>> = _textFiles
@@ -36,15 +36,15 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
         }
     }
 
-    suspend fun getTextFileByName(filename: String): Resource<TextFile> {
+    suspend fun getFileByName(filename: String): Resource<TextFile> {
         return withContext(Dispatchers.IO) {
-            Log.d(TFVM, "getTextFileByName() was called!")
+            Log.d(GVM, "getFileByName() was called!")
             try {
                 if (textFile.value.fileName == filename) return@withContext Resource.Success(textFile.value)
                 //val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                 //работало в эмуле, но не в телефоне. оно depricated. возможно из за этого. Или ей нужно разрешение какое то.
                 //а пока возвращяемся к этому.
-                Log.d(TFVM, "getExternalFilesDir() in getTextFileByName() was called!")
+                Log.d(GVM, "getExternalFilesDir() in getFileByName() was called!")
                 val external = context.getExternalFilesDir(null)
                 val file = File(external, filename)
                 val newTextFile = file.inputStream().bufferedReader().use {
@@ -59,18 +59,17 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
         }
     }
 
-
     //TODO: Сделать асинхронным
     private suspend fun getFileNames() = withContext(Dispatchers.IO) {
-        Log.d(TFVM, "getFileNames() was called!")
+        Log.d(GVM, "getFileNames() was called!")
         context.getExternalFilesDir(null)?.listFiles()
             ?.map { it.name.lowercase() }
     }
 
-    suspend fun createFileInIS(
+    suspend fun createFile(
         initTextFile: TextFile
     ): Resource<TextFile> {
-        Log.d(TFVM, "createFileInIS() was called!")
+        Log.d(GVM, "createFileInIS() was called!")
         try {
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
@@ -85,10 +84,10 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
         }
     }
 
-    suspend fun editFileInIS(
+    suspend fun editFile(
         initTextFile: TextFile, oldName: String
     ): Resource<TextFile> {
-        Log.d(TFVM, "editFileInIS() was called!")
+        Log.d(GVM, "editFileInIS() was called!")
         try {
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
@@ -99,7 +98,7 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
                 return Resource.Error("That filename is already used")
             saveFile(textFile)
             if ((textFile.fileName.lowercase() != oldName.lowercase()))
-                deleteFileFromIS(oldName)
+                deleteFile(oldName)
             return Resource.Success(textFile)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -108,7 +107,7 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
     }
 
     private suspend fun saveFile(textFile: TextFile) = withContext(Dispatchers.IO) {
-        Log.d(TFVM, "saveFile() was called!")
+        Log.d(GVM, "saveFile() was called!")
         try {
             val external = context.getExternalFilesDir(null)
             val file = File(external, textFile.fileName)
@@ -128,8 +127,8 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
     }
 
 
-    fun deleteFileFromIS(filename: String) = viewModelScope.launch(Dispatchers.IO) {
-        Log.d(TFVM, "deleteFileFromIS() was called!")
+    fun deleteFile(filename: String) = viewModelScope.launch(Dispatchers.IO) {
+        Log.d(GVM, "deleteFileFromIS() was called!")
         val result = try {
             val files = context.getExternalFilesDir(null)?.listFiles()
             files?.find { it.name == filename }?.delete()
@@ -145,7 +144,7 @@ class GeneralViewModel @Inject constructor(@ApplicationContext val context: Cont
 
     /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
     fun updateFilesInUI() = viewModelScope.launch(Dispatchers.IO) {
-        Log.d(TFVM, "updateFilesInUI() was called!")
+        Log.d(GVM, "updateFilesInUI() was called!")
         _textFiles.value = try {
             val files = context.getExternalFilesDir(null)?.listFiles()
             //val files = context.getExternalFilesDir(null)?.listFiles()

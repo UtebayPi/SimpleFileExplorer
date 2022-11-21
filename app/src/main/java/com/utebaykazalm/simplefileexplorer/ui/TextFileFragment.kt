@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFileBinding
 import com.utebaykazalm.simplefileexplorer.utils.Resource
+import com.utebaykazalm.simplefileexplorer.utils.collectLatestFlowInStarted
 import kotlinx.coroutines.launch
 
 
@@ -28,7 +29,7 @@ class TextFileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         lifecycleScope.launch() {
-            val resultFile = viewModel.getTextFileByName(args.filename)
+            val resultFile = viewModel.getFileByName(args.filename)
             if (resultFile !is Resource.Success) {
                 findNavController().popBackStack()
                 return@launch

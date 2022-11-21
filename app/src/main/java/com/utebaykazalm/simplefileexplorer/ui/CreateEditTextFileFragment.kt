@@ -44,7 +44,7 @@ class CreateEditTextFileFragment : Fragment() {
         val existingFileName = args.filename
         if (existingFileName.isNotBlank()) {
             lifecycleScope.launch() {
-                val resultFile = viewModel.getTextFileByName(existingFileName)
+                val resultFile = viewModel.getFileByName(existingFileName)
                 if (resultFile is Resource.Success) {
                     isEdit = true
                     binding.etTextFileName.setText(resultFile.data.fileName)
@@ -58,9 +58,9 @@ class CreateEditTextFileFragment : Fragment() {
             val textFile = TextFile(filename, content)
             lifecycleScope.launch() {
                 val result = if (isEdit) {
-                    viewModel.editFileInIS(textFile, existingFileName)
+                    viewModel.editFile(textFile, existingFileName)
                 } else {
-                    viewModel.createFileInIS(textFile)
+                    viewModel.createFile(textFile)
                 }
                 when (result) {
                     is Resource.Success -> {
