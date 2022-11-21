@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
@@ -13,6 +14,7 @@ import com.utebaykazalm.simplefileexplorer.data.TextFile
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentCreateEditTextFileBinding
 import com.utebaykazalm.simplefileexplorer.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 const val CREATE_TFF = "CreateTextFileFragment"
 
@@ -21,7 +23,7 @@ class CreateEditTextFileFragment : Fragment() {
 
     private val args: CreateEditTextFileFragmentArgs by navArgs()
 
-    private val viewModel: TextFileViewModel by activityViewModels()
+    private val viewModel: GeneralViewModel by activityViewModels()
 
     private var _binding: FragmentCreateEditTextFileBinding? = null
     private val binding: FragmentCreateEditTextFileBinding get() = _binding!!
@@ -41,31 +43,35 @@ class CreateEditTextFileFragment : Fragment() {
         }
         val existingFileName = args.filename
         if (existingFileName.isNotBlank()) {
-            val resultFile = viewModel.getTextFileByName(existingFileName)
-            if (resultFile is Resource.Success) {
-                isEdit = true
-                binding.etTextFileName.setText(resultFile.data.fileName)
-                binding.etTextFileContent.setText(resultFile.data.content)
+            lifecycleScope.launch() {
+                val resultFile = viewModel.getTextFileByName(existingFileName)
+                if (resultFile is Resource.Success) {
+                    isEdit = true
+                    binding.etTextFileName.setText(resultFile.data.fileName)
+                    binding.etTextFileContent.setText(resultFile.data.content)
+                }
             }
         }
         binding.btnSave.setOnClickListener {
             val filename = binding.etTextFileName.text.toString()
             val content = binding.etTextFileContent.text.toString()
             val textFile = TextFile(filename, content)
-            val result = if (isEdit) {
-                viewModel.editFileInIS(textFile, existingFileName)
-            } else {
-                viewModel.createFileInIS(textFile)
-            }
-            when (result) {
-                is Resource.Success -> {
-                    findNavController().navigate(
-                        CreateEditTextFileFragmentDirections
-                            .actionCreateTextFileFragmentToTextFileFragment(result.data.fileName)
-                    )
+            lifecycleScope.launch() {
+                val result = if (isEdit) {
+                    viewModel.editFileInIS(textFile, existingFileName)
+                } else {
+                    viewModel.createFileInIS(textFile)
                 }
-                is Resource.Error -> {
-                    Snackbar.make(view, result.message, Snackbar.LENGTH_SHORT).show()
+                when (result) {
+                    is Resource.Success -> {
+                        findNavController().navigate(
+                            CreateEditTextFileFragmentDirections
+                                .actionCreateTextFileFragmentToTextFileFragment(result.data.fileName)
+                        )
+                    }
+                    is Resource.Error -> {
+                        Snackbar.make(view, result.message, Snackbar.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

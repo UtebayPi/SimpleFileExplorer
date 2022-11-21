@@ -6,15 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFileBinding
 import com.utebaykazalm.simplefileexplorer.utils.Resource
+import kotlinx.coroutines.launch
 
 
 //TODO: надо создать ViewModel
 class TextFileFragment : Fragment() {
-    private val viewModel: TextFileViewModel by activityViewModels()
+    private val viewModel: GeneralViewModel by activityViewModels()
     private val args: TextFileFragmentArgs by navArgs()
     private var _binding: FragmentTextFileBinding? = null
     private val binding get() = _binding!!
@@ -25,20 +27,22 @@ class TextFileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val resultFile = viewModel.getTextFileByName(args.filename)
-        if (resultFile !is Resource.Success) {
-            findNavController().popBackStack()
-            return
-        }
-        binding.tvTextFileContent.text = resultFile.data.content
-        val filename = resultFile.data.fileName
-        binding.tvTextFileName.text = filename
-        binding.btnEdit.setOnClickListener {
-            findNavController().navigate(
-                TextFileFragmentDirections.actionTextFileFragmentToCreateTextFileFragment(
-                    filename
+        lifecycleScope.launch() {
+            val resultFile = viewModel.getTextFileByName(args.filename)
+            if (resultFile !is Resource.Success) {
+                findNavController().popBackStack()
+                return@launch
+            }
+            binding.tvTextFileContent.text = resultFile.data.content
+            val filename = resultFile.data.fileName
+            binding.tvTextFileName.text = filename
+            binding.btnEdit.setOnClickListener {
+                findNavController().navigate(
+                    TextFileFragmentDirections.actionTextFileFragmentToCreateTextFileFragment(
+                        filename
+                    )
                 )
-            )
+            }
         }
     }
 

@@ -8,18 +8,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.utebaykazalm.simplefileexplorer.databinding.FragmentTextFilesListBinding
+import com.utebaykazalm.simplefileexplorer.utils.collectLatestFlowInStarted
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 const val TFLF = "TextFilesListFragment"
 
 @AndroidEntryPoint
 class TextFilesListFragment : Fragment() {
 
-    private val viewModel: TextFileViewModel by activityViewModels()
+    private val viewModel: GeneralViewModel by activityViewModels()
 
     private var _binding: FragmentTextFilesListBinding? = null
     private val binding: FragmentTextFilesListBinding get() = _binding!!
@@ -45,10 +44,16 @@ class TextFilesListFragment : Fragment() {
                 )
             )
         }
-        lifecycleScope.launch {
-            viewModel.textFiles.collect {
-                filesListAdapter.submitList(it)
-            }
+        collectLatestFlowInStarted(viewModel.textFiles) {
+            filesListAdapter.submitList(it)
+        }
+//        lifecycleScope.launch {
+//            viewModel.textFiles.collect {
+//                filesListAdapter.submitList(it)
+//            }
+//        }
+        binding.fabUpdateFiles.setOnClickListener {
+            viewModel.updateFilesInUI()
         }
     }
 
@@ -70,10 +75,10 @@ class TextFilesListFragment : Fragment() {
         binding.rvFiles.adapter = filesListAdapter
     }
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.updateFilesInUI()
-    }
+//    override fun onStart() {
+//        super.onStart()
+//        viewModel.updateFilesInUI()
+//    }
 
 
     override fun onDestroyView() {

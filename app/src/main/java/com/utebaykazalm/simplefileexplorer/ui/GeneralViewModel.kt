@@ -2,6 +2,7 @@ package com.utebaykazalm.simplefileexplorer.ui
 
 import kotlinx.coroutines.flow.asStateFlow
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,11 +15,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class TextFileViewModel @Inject constructor(@ApplicationContext val context: Context) : ViewModel() {
+class GeneralViewModel @Inject constructor(@ApplicationContext val context: Context) : ViewModel() {
 
     val TFVM = "TextFileViewModel"
 
@@ -28,41 +30,47 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     private var _textFile: MutableStateFlow<TextFile> = MutableStateFlow(TextFile("", ""))
     val textFile = _textFile.asStateFlow()
 
-//    init {
-//        viewModelScope.launch {
-//            updateFilesInUI()
-//        }
-//    }
-
-    fun getTextFileByName(filename: String): Resource<TextFile> {
-        return try {
-            //val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-            //работало в эмуле, но не в телефоне. оно depricated. возможно из за этого. Или ей нужно разрешение какое то.
-            //а пока возвращяемся к этому.
-            //TODO: Сделать асинхронным
-            val external = context.getExternalFilesDir(null)
-            val file = File(external, filename)
-            val textFile = file.inputStream().bufferedReader().use {
-                TextFile(filename, it.readText())
-            }
-//            val textFile = context.openFileInput(filename).bufferedReader().use {
-//                TextFile(filename, it.readText())
-//            }
-            Resource.Success(textFile)
-        } catch (e: Exception) {
-            Toast.makeText(context, "Exception: " + e.message.toString(), Toast.LENGTH_SHORT).show()
-            Resource.Error("Exception: " + e.message.toString())
+    init {
+        viewModelScope.launch {
+            updateFilesInUI()
         }
     }
 
+    suspend fun getTextFileByName(filename: String): Resource<TextFile> {
+        return withContext(Dispatchers.IO) {
+            Log.d(TFVM, "getTextFileByName() was called!")
+            try {
+                if (textFile.value.fileName == filename) return@withContext Resource.Success(textFile.value)
+                //val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                //работало в эмуле, но не в телефоне. оно depricated. возможно из за этого. Или ей нужно разрешение какое то.
+                //а пока возвращяемся к этому.
+                Log.d(TFVM, "getExternalFilesDir() in getTextFileByName() was called!")
+                val external = context.getExternalFilesDir(null)
+                val file = File(external, filename)
+                val newTextFile = file.inputStream().bufferedReader().use {
+                    TextFile(filename, it.readText())
+                }
+                _textFile.value = newTextFile
+                Resource.Success(newTextFile)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Exception: " + e.message.toString(), Toast.LENGTH_SHORT).show()
+                Resource.Error("Exception: " + e.message.toString())
+            }
+        }
+    }
+
+
     //TODO: Сделать асинхронным
-    private fun getFileNames() =
+    private suspend fun getFileNames() = withContext(Dispatchers.IO) {
+        Log.d(TFVM, "getFileNames() was called!")
         context.getExternalFilesDir(null)?.listFiles()
             ?.map { it.name.lowercase() }
+    }
 
-    fun createFileInIS(
+    suspend fun createFileInIS(
         initTextFile: TextFile
     ): Resource<TextFile> {
+        Log.d(TFVM, "createFileInIS() was called!")
         try {
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
@@ -77,9 +85,10 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    fun editFileInIS(
+    suspend fun editFileInIS(
         initTextFile: TextFile, oldName: String
     ): Resource<TextFile> {
+        Log.d(TFVM, "editFileInIS() was called!")
         try {
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
@@ -98,9 +107,9 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    //TODO: Сделать асинхронным
-    private fun saveFile(textFile: TextFile): Boolean {
-        return try {
+    private suspend fun saveFile(textFile: TextFile) = withContext(Dispatchers.IO) {
+        Log.d(TFVM, "saveFile() was called!")
+        try {
             val external = context.getExternalFilesDir(null)
             val file = File(external, textFile.fileName)
             file.outputStream().use {
@@ -118,37 +127,36 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
         }
     }
 
-    fun deleteFileFromIS(filename: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = try {
-                val files = context.getExternalFilesDir(null)?.listFiles()
-                files?.find { it.name == filename }?.delete()
-                true
-                //context.deleteFile(filename)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
-            }
-            if (result) updateFilesInUI()
+
+    fun deleteFileFromIS(filename: String) = viewModelScope.launch(Dispatchers.IO) {
+        Log.d(TFVM, "deleteFileFromIS() was called!")
+        val result = try {
+            val files = context.getExternalFilesDir(null)?.listFiles()
+            files?.find { it.name == filename }?.delete()
+            true
+            //context.deleteFile(filename)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
+        if (result) updateFilesInUI()
     }
 
-    /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
-    fun updateFilesInUI() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _textFiles.value = try {
-                val files = context.getExternalFilesDir(null)?.listFiles()
-                //val files = context.getExternalFilesDir(null)?.listFiles()
-                //and it.name.endsWith(".txt")
-                files?.filter { it.canRead() and it.isFile }?.map {
-                    TextFile(it.name, "")
-                } ?: listOf()
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                e.printStackTrace()
-                listOf()
-            }
-        }
 
+    /* TODO: Надо сделать наблюдатель за изменениями в файловой системе, чтобы самому вручную не обновлять список */
+    fun updateFilesInUI() = viewModelScope.launch(Dispatchers.IO) {
+        Log.d(TFVM, "updateFilesInUI() was called!")
+        _textFiles.value = try {
+            val files = context.getExternalFilesDir(null)?.listFiles()
+            //val files = context.getExternalFilesDir(null)?.listFiles()
+            //and it.name.endsWith(".txt")
+            files?.filter { it.canRead() and it.isFile }?.map {
+                TextFile(it.name, "")
+            } ?: listOf()
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            e.printStackTrace()
+            listOf()
+        }
     }
 }
