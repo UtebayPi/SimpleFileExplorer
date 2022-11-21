@@ -35,7 +35,10 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun getTextFileByName(filename: String): Resource<TextFile> {
         return try {
-            val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            //val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            //работало в эмуле, но не в телефоне. оно depricated. возможно из за этого. Или ей нужно разрешение какое то.
+            //а пока возвращяемся к этому.
+            val external = context.getExternalFilesDir(null)
             val file = File(external, filename)
             val textFile = file.inputStream().bufferedReader().use {
                 TextFile(filename, it.readText())
@@ -52,8 +55,8 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     }
 
     private fun getFileNames() =
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
-            ?.map { it.name.lowercase() } as MutableList
+        context.getExternalFilesDir(null)?.listFiles()
+            ?.map { it.name.lowercase() }
 
     fun createFileInIS(
         initTextFile: TextFile
@@ -62,7 +65,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
             val textFile = resultFile.data!!
-            if (getFileNames().contains(textFile.fileName.lowercase()))
+            if (getFileNames()?.contains(textFile.fileName.lowercase()) == true)
                 return Resource.Error("That filename is already used")
             saveFile(textFile)
             return Resource.Success(textFile)
@@ -79,9 +82,9 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
             val resultFile = initTextFile.trimVerifyCreate()
             if (resultFile is Resource.Error) return resultFile
             val textFile = resultFile.data!!
-            val availableNames = getFileNames()
-            availableNames.remove(oldName.lowercase())
-            if (availableNames.contains(textFile.fileName.lowercase()))
+            val availableNames = getFileNames()?.toMutableList()
+            availableNames?.remove(oldName.lowercase())
+            if (availableNames?.contains(textFile.fileName.lowercase()) == true)
                 return Resource.Error("That filename is already used")
             saveFile(textFile)
             if ((textFile.fileName.lowercase() != oldName.lowercase()))
@@ -95,7 +98,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     private fun saveFile(textFile: TextFile): Boolean {
         return try {
-            val external = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            val external = context.getExternalFilesDir(null)
             val file = File(external, textFile.fileName)
             file.outputStream().use {
                 it.write(textFile.content.toByteArray())
@@ -114,7 +117,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
 
     fun deleteFileFromIS(filename: String): Boolean {
         val result = try {
-            val files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
+            val files = context.getExternalFilesDir(null)?.listFiles()
             files?.find { it.name == filename }?.delete()
             true
             //context.deleteFile(filename)
@@ -130,7 +133,7 @@ class TextFileViewModel @Inject constructor(@ApplicationContext val context: Con
     fun updateFilesInUI() {
         viewModelScope.launch(Dispatchers.IO) {
             _textFiles.value = try {
-                val files = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)?.listFiles()
+                val files = context.getExternalFilesDir(null)?.listFiles()
                 //val files = context.getExternalFilesDir(null)?.listFiles()
                 //and it.name.endsWith(".txt")
                 files?.filter { it.canRead() and it.isFile }?.map {
